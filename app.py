@@ -14,6 +14,9 @@ st.set_page_config(page_title='Gemini Chatbot',
 
 @st.cache_data
 def initialize_model():
+    """
+    Configure the Google generativeai with the GEMINI_API_KEY
+    """
     load_dotenv()
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
     os.environ["GEMINI_API_KEY"] = GEMINI_API_KEY
@@ -54,15 +57,24 @@ st.sidebar.button("Clear Chat History", on_click=clear_chat_history)
 
 def run_query(input_text):
     """
+    Run query. The model is initialized and then queried.
+    Args:
+        input_text (str): we are just passing to the model the user prompt
+    Returns:
+        response.text (str): the text of the response
     """
     try:
         model = genai.GenerativeModel("gemini-1.5-flash")
         response = model.generate_content(input_text)
 
+        if response:
+            return response.text
+        else:
+            return "Error"
+
     except Exception as ex:
         return "Error"
     
-    return response.text
 
 output = st.empty()
 if prompt := st.chat_input():
