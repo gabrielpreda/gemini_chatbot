@@ -4,6 +4,7 @@ from io import StringIO
 from dotenv import load_dotenv
 import google.generativeai as genai
 import os
+from vertexai.language_models import ChatModel
 
 
 
@@ -11,6 +12,7 @@ import os
 st.set_page_config(page_title='Gemini Chatbot', 
                     page_icon = "images/gemini_avatar.png",
                     initial_sidebar_state = 'auto')
+
 
 @st.cache_data
 def initialize_model():
@@ -21,9 +23,15 @@ def initialize_model():
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
     os.environ["GEMINI_API_KEY"] = GEMINI_API_KEY
     genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+    model = genai.GenerativeModel("gemini-1.5-flash")
+    chat = model.start_chat()
+    print("initialize chat!!!")
+    return chat
 
 
-initialize_model()
+if "chat" not in st.session_state:
+    st.session_state.chat = initialize_model()
+
 
 background_color = "#252740"
 
@@ -64,11 +72,16 @@ def run_query(input_text):
         response.text (str): the text of the response
     """
     try:
-        model = genai.GenerativeModel("gemini-1.5-flash")
-        response = model.generate_content(input_text)
+        
+        response = st.session_state.chat.send_message(input_text)
+
+        for msg in st.session_state.chat.history:
+            print(f"{msg.role}: {msg.parts[0].text}")
 
         if response:
             return response.text
+        
+
         else:
             return "Error"
 
